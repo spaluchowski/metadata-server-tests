@@ -144,4 +144,22 @@ public class MetadataQueryApiTest {
         );
     }
 
+    @Test
+    public void contentTypeWrong() {
+        ExtractableResponse<Response> extract =
+                given()
+                        .basePath(Services.METADATA_QUERY)
+                        .contentType(ContentType.HTML)
+                        .body(QueryBody.builder().subjects(of("a")).build())
+                        .when()
+                        .post()
+                        .then()
+                        .extract();
+
+        assertAll(
+                () -> assertEquals(SC_OK, extract.statusCode()),
+                () -> assertEquals(ContentType.JSON.toString(), extract.contentType())
+        );
+    }
+
 }
