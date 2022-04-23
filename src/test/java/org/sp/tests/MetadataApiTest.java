@@ -19,7 +19,7 @@ public class MetadataApiTest {
         ExtractableResponse<Response> extract =
                 given()
                         .basePath(Services.METADATA_PROPERTY)
-                        .pathParam("property", "789ef8ae89617f34c07f7f6a12e4d65146f958c0bc15a97b4ff169f1")
+                        .pathParam("subject", "789ef8ae89617f34c07f7f6a12e4d65146f958c0bc15a97b4ff169f1")
                         .when()
                         .get()
                         .then()
@@ -35,7 +35,7 @@ public class MetadataApiTest {
         ExtractableResponse<Response> extract =
                 given()
                         .basePath(Services.METADATA_PROPERTY)
-                        .pathParam("property", "should_not_be_found")
+                        .pathParam("subject", "should_not_be_found")
                         .when()
                         .get()
                         .then()

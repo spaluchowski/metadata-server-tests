@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.sp.Services;
 import org.sp.model.QueryBody;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -149,8 +150,8 @@ public class MetadataQueryApiTest {
         ExtractableResponse<Response> extract =
                 given()
                         .basePath(Services.METADATA_QUERY)
-                        .contentType(ContentType.HTML)
-                        .body(QueryBody.builder().subjects(of("a")).build())
+                        .contentType(ContentType.TEXT.toString())
+                        .body("{\"subjects\":[\"s\"]}")
                         .when()
                         .post()
                         .then()
@@ -162,4 +163,72 @@ public class MetadataQueryApiTest {
         );
     }
 
+    @Test
+    public void contentTypeWrondddg() {
+        ExtractableResponse<Response> extract =
+                given()
+                        .basePath(Services.METADATA_QUERY)
+                        .contentType(ContentType.JSON.toString())
+                        .body(QueryBody.builder().subjects(of(getString())).build())
+                        .when()
+                        .post()
+                        .then()
+                        .extract();
+
+        assertAll(
+                () -> assertEquals(SC_OK, extract.statusCode()),
+                () -> assertEquals(ContentType.JSON.toString(), extract.contentType())
+        );
+    }
+
+    @Test
+    public void contentTypeWrjkljklndddg() {
+        List<String> subjects = new ArrayList<>();
+        for (int i = 0; i < 16*1024; i++) {
+            subjects.add(Integer.toString(i));
+        }
+
+        ExtractableResponse<Response> extract =
+                given()
+                        .basePath(Services.METADATA_QUERY)
+                        .contentType(ContentType.JSON.toString())
+                        .body(QueryBody.builder().subjects(subjects).build())
+                        .when()
+                        .post()
+                        .then()
+                        .extract();
+
+        assertAll(
+                () -> assertEquals(SC_OK, extract.statusCode()),
+                () -> assertEquals(ContentType.JSON.toString(), extract.contentType())
+        );
+    }
+    @Test
+    public void contentTypeWrjklkjkjkljdddg() {
+        ExtractableResponse<Response> extract =
+                given()
+                        .basePath(Services.METADATA_QUERY)
+                        .contentType(ContentType.JSON.toString())
+                        .body(QueryBody.builder()
+                                .subjects(of("919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e"))
+                                .properties(of("unknown")).build())
+                        .when()
+                        .post()
+                        .then()
+                        .extract();
+
+        assertAll(
+                () -> assertEquals(SC_OK, extract.statusCode()),
+                () -> assertEquals(ContentType.JSON.toString(), extract.contentType())
+        );
+    }
+
+
+    public String getString() {
+        StringBuilder s = new StringBuilder();
+        for (var i = 0; i <= 255; i++) {
+            s.append((char) i);
+        }
+        return s.toString();
+    }
 }

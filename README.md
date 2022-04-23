@@ -181,3 +181,46 @@ To be discussed:
 
 X-Xss-Protection: 1; mode=block
 https://stackoverflow.com/questions/9090577/what-is-the-http-header-x-xss-protection#:~:text=X-XSS-Protection%3A%201%3B%20mode%3Dblock%20allows%20attacker%20to%20leak%20data,the%20behavior%20of%20the%20page%20as%20a%20side-channel.
+
+### Bug
+
+Subjects undefined - Internal server error
+
+### Bug
+WEBrick/1.4.2  - Disputed path traversal - 
+https://www.cvedetails.com/cve/CVE-2019-11879/
+
+### Bug
+
+decimals, policy - te property sa w subject 919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e ale nie sa w known properties!
+
+### Bug
+
+Requesting policy property gets invalid json in response
+
+```
+Request method:	GET
+Request URI:	http://metadata-server-mock.herokuapp.com/metadata/919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e/properties/policy
+Proxy:			<none>
+Request params:	<none>
+Query params:	<none>
+Form params:	<none>
+Path params:	subject=919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e
+property=policy
+Headers:		Accept=*/*
+Cookies:		<none>
+Multiparts:		<none>
+Body:			<none>
+```
+```
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Type: application/json
+Content-Length: 76
+X-Content-Type-Options: nosniff
+Server: WEBrick/1.4.2 (Ruby/2.6.6/2020-03-31)
+Date: Sat, 23 Apr 2022 23:21:50 GMT
+Via: 1.1 vegur
+
+"82008201818200581c69303ce3536df260efddbc949ccb94e6993302b10b778d8b4d98bfb5"
+```
