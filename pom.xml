@@ -110,7 +110,7 @@
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
+            <artifactId>slf4j-reload4j</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
         <dependency>
@@ -200,6 +200,14 @@
                     </dependency>
                 </dependencies>
             </plugin>
+            <plugin>
+                <groupId>io.qameta.allure</groupId>
+                <artifactId>allure-maven</artifactId>
+                <configuration>
+                    <resultsDirectory>${basedir}/allure-results</resultsDirectory>
+                    <reportVersion>2.17.3</reportVersion>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -209,6 +217,10 @@
             <plugin>
                 <groupId>io.qameta.allure</groupId>
                 <artifactId>allure-maven</artifactId>
+                <configuration>
+                    <resultsDirectory>${basedir}/allure-results</resultsDirectory>
+                    <reportVersion>2.17.3</reportVersion>
+                </configuration>
             </plugin>
         </plugins>
     </reporting>
