@@ -224,3 +224,44 @@ Via: 1.1 vegur
 
 "82008201818200581c69303ce3536df260efddbc949ccb94e6993302b10b778d8b4d98bfb5"
 ```
+
+### Bug
+
+Needs to be double-checked with BA 
+
+Known properties vs which one I can request
+
+### Bug
+
+Unknown property error in response body is not a JSON 
+
+```
+curl 'http://metadata-server-mock.herokuapp.com/metadata/919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e/properties/unit' --header 'Accept: */*' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/17.0.2)' --compressed --insecure --verbose
+```
+```
+Request method:	GET
+Request URI:	http://metadata-server-mock.herokuapp.com/metadata/919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e/properties/unit
+Proxy:			<none>
+Request params:	<none>
+Query params:	<none>
+Form params:	<none>
+Path params:	subject=919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e
+property=unit
+Headers:		Accept=*/*
+Cookies:		<none>
+Multiparts:		<none>
+Body:			<none>
+```
+
+```
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Type: application/json
+Content-Length: 35
+X-Content-Type-Options: nosniff
+Server: WEBrick/1.4.2 (Ruby/2.6.6/2020-03-31)
+Date: Mon, 25 Apr 2022 20:08:05 GMT
+Via: 1.1 vegur
+
+Requested property 'unit' not found
+```

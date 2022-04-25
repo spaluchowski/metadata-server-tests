@@ -16,8 +16,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>16</maven.compiler.source>
         <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
-        <junit.jupiter.version>5.8.1</junit.jupiter.version>
+        <junit.jupiter.version>5.8.2</junit.jupiter.version>
         <junit.platform.version>1.8.1</junit.platform.version>
+        <junit.platform.commons.version>1.8.2</junit.platform.commons.version>
         <allure.version>2.17.3</allure.version>
         <rest-assured.version>5.0.1</rest-assured.version>
         <aspectj.version>1.9.9.1</aspectj.version>
@@ -25,9 +26,18 @@
         <maven-surefire-plugin.version>3.0.0-M6</maven-surefire-plugin.version>
         <allure-maven.version>2.11.2</allure-maven.version>
         <jackson.version>2.12.4</jackson.version>
+        <slf4j.version>1.7.36</slf4j.version>
+        <curl-logger.version>2.1.1</curl-logger.version>
+        <lombok.version>1.18.24</lombok.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -48,8 +58,8 @@
         </dependency>
         <dependency>
             <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-suite</artifactId>
-            <version>${junit.platform.version}</version>
+            <artifactId>junit-platform-suite-commons</artifactId>
+            <version>${junit.platform.commons.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -84,21 +94,34 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.24</version>
+            <version>${lombok.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.dzieciou.testing</groupId>
             <artifactId>curl-logger</artifactId>
-            <version>2.1.1</version>
+            <version>${curl-logger.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.2.11</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.22.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
+        <sourceDirectory>src/main/java</sourceDirectory>
         <testSourceDirectory>src/test/java</testSourceDirectory>
 
         <pluginManagement>
@@ -124,6 +147,9 @@
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>11</release>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
