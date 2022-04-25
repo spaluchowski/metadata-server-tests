@@ -7,6 +7,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.sp.AllowedProperties;
+import org.sp.MetadataServerTest;
 import org.sp.Services;
 import org.sp.Steps;
 import org.sp.model.QueryBody;
@@ -22,16 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.sp.MetadataRestAssured.given;
 
-public class MetadataQueryApiTest {
-
-    private static String existingSubject;
-    private static final String nonExistingSubject = "nonExistingSubject";
-
-    @BeforeAll
-    public static void setup() {
-        List<String> allMetadataPaths = Steps.getAllMetadataPaths();
-        existingSubject = Steps.getMetadataSubjectFromPath(allMetadataPaths.get(0));
-    }
+public class MetadataQueryApiTest extends MetadataServerTest {
 
     @Test
     public void onlyKnownSubject() {

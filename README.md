@@ -265,3 +265,39 @@ Via: 1.1 vegur
 
 Requested property 'unit' not found
 ```
+
+### Bug
+
+Possible to read property subject
+
+```
+Request method:	GET
+Request URI:	http://metadata-server-mock.herokuapp.com/metadata/919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e/properties/subject
+Proxy:			<none>
+Request params:	<none>
+Query params:	<none>
+Form params:	<none>
+Path params:	subject=919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e
+property=subject
+Headers:		Accept=*/*
+Cookies:		<none>
+Multiparts:		<none>
+Body:			<none>
+```
+
+```
+curl 'http://metadata-server-mock.herokuapp.com/metadata/919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e/properties/subject' --header 'Accept: */*' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/11.0.2)' --compressed --insecure --verbose
+```
+
+```
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Type: application/json
+Content-Length: 76
+X-Content-Type-Options: nosniff
+Server: WEBrick/1.4.2 (Ruby/2.6.6/2020-03-31)
+Date: Mon, 25 Apr 2022 20:42:03 GMT
+Via: 1.1 vegur
+
+"919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e"
+```

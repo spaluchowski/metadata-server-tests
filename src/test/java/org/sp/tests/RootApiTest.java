@@ -7,8 +7,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.sp.Services;
 
-import java.util.List;
-
 import static io.restassured.path.xml.XmlPath.CompatibilityMode.HTML;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
