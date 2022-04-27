@@ -6,57 +6,86 @@ Code for API testing of the https://github.com/piotr-iohk/metadata-server-mock s
 
 Defects located
 
-## Bug 1
+All should contain:
 
-Information disclosure
+- App version
+- Severity
+
+But shortened for readability
+
+## Bug 1 - Server information disclosure
+
+### Description
+
 Server information leakage
-
-Header:
+Every response contains header:
 Server: WEBrick/1.4.2 (Ruby/2.6.6/2020-03-31)
 
-## Bug 2
+Needs review:
+https://www.cvedetails.com/cve/CVE-2019-11879/
+https://www.cvedetails.com/cve/CVE-2020-25613/
 
-Sending:
-Content-Type=text/plain; charset=ISO-8859-1
+### Expected
 
-Any CT is parsed as JSON?
+- Do not disclose server information
+- Upgrade
 
-## Bug 3
+***
 
-### Summary
-
-Empty Json root element in body results in Internal Server Error
-
-### App Version
-
-x
-
-### Severity
-
-High
+## Bug 2 - Wrong content type is parsed as JSON
 
 ### Description
 
-#### Steps
+Looks like content type header may be ignored.  
+If request contains:
 
-Send request with empty root json element
+- "Content-Type=text/plain; charset=ISO-8859-1" in header
+- valid JSON body
+
+the document is parsed
+
+### Steps
 
 ```
-Request method:	POST
-Request URI:	http://metadata-server-mock.herokuapp.com/metadata/query
-Proxy:			<none>
-Request params:	<none>
-Query params:	<none>
-Form params:	<none>
-Path params:	<none>
-Headers:		Accept=*/*
-Content-Type=application/json
-Cookies:		<none>
-Multiparts:		<none>
-Body:
-{
+curl 'http://metadata-server-mock.herokuapp.com/metadata/query' --header 'Accept: */*' --header 'Content-Type: text/plain; charset=ISO-8859-1' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/17.0.2)' --data-binary '{"subjects":["919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e"]}' --compressed --insecure --verbose
+```
 
-}
+### Actual outcome
+
+```
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Type: application/json
+Content-Length: 2878
+X-Content-Type-Options: nosniff
+Server: WEBrick/1.4.2 (Ruby/2.6.6/2020-03-31)
+Date: Wed, 27 Apr 2022 15:14:12 GMT
+Via: 1.1 vegur
+
+{
+"subjects": [
+{
+"subject": "919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e",
+...
+```
+
+### Expected outcome
+
+Response code 400
+
+***
+
+## Bug 3 - Empty Json root element in body results in Internal Server Error
+
+### Description
+
+Send request with empty root json element gives in response code 500
+Same happens for invalid JSON
+
+#### Steps
+
+```
+curl 'http://metadata-server-mock.herokuapp.com/metadata/query' --request POST --header 'Content-Type: application/json' --header 'Accept: */*' --header 'Content-Length: 0' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/17.0.2)' --compressed --insecure --verbose
 ```
 
 #### Actual outcome
@@ -84,37 +113,18 @@ Via: 1.1 vegur
 
 400 Bad request response should be sent
 
-## Bug 4
+***
 
-### Summary
-
-No body element in request results in Internal Server Error
-
-App Version: x
-Severity: High
+## Bug 4 - [/metadata/query] No body element in request results in Internal Server Error
 
 ### Description
 
+Send request with empty root json element gives response code 500
+
 #### Steps
 
-Send request with empty root json element
-
 ```
-Request method:	POST
-Request URI:	http://metadata-server-mock.herokuapp.com/metadata/query
-Proxy:			<none>
-Request params:	<none>
-Query params:	<none>
-Form params:	<none>
-Path params:	<none>
-Headers:		Accept=*/*
-Content-Type=application/json
-Cookies:		<none>
-Multiparts:		<none>
-Body:
-{
-
-}
+curl 'http://metadata-server-mock.herokuapp.com/metadata/query' --header 'Accept: */*' --header 'Content-Type: application/json' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/17.0.2)' --data-binary '{}' --compressed --insecure --verbose
 ```
 
 #### Actual outcome
@@ -142,23 +152,26 @@ Via: 1.1 vegur
 
 400 Bad request response should be sent
 
-## Bug 5
+***
 
-Request
+## Bug 5 - [/metadata/{id}] Improper resource not found error response behaviour
+
+### Description
+
+Requesting not found subject gives inconsistent response:
+
+- response code 200
+- content-type: json
+- plain text body
+
+### Steps
+
 ```
-Request method:	GET
-Request URI:	http://metadata-server-mock.herokuapp.com/metadata/789ef8ae89617f34c07f7f6a12e4d65146f958c0bc15a97b4ff169f1
-Proxy:			<none>
-Request params:	<none>
-Query params:	<none>
-Form params:	<none>
-Path params:	property=789ef8ae89617f34c07f7f6a12e4d65146f958c0bc15a97b4ff169f1
-Headers:		Accept=*/*
-Cookies:		<none>
-Multiparts:		<none>
-Body:			<none>
+ curl 'http://metadata-server-mock.herokuapp.com/metadata/nonExistingSubject' --header 'Accept: */*' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/17.0.2)' --compressed --insecure --verbose
 ```
-Actual response
+
+### Actual response
+
 ```
 HTTP/1.1 200 OK
 Connection: keep-alive
@@ -171,47 +184,60 @@ Content-Length: 86
 
 Requested subject '789ef8ae89617f34c07f7f6a12e4d65146f958c0bc15a97b4ff169f1' not found
 ```
+
 #### Expected
-To be discussed:
 
-- Content Type: application/json - Where the body is text/plain
-- Status code 200 - Where the item is not found
+Response code 404
 
-### Bug 6
+***
 
-X-Xss-Protection: 1; mode=block
-https://stackoverflow.com/questions/9090577/what-is-the-http-header-x-xss-protection#:~:text=X-XSS-Protection%3A%201%3B%20mode%3Dblock%20allows%20attacker%20to%20leak%20data,the%20behavior%20of%20the%20page%20as%20a%20side-channel.
+## Bug 6 - X-Xss-Protection header should not be returned in response
 
-### Bug
+### Description
 
-Subjects undefined - Internal server error
+Header "X-Xss-Protection: 1; mode=block" is returned in response
 
-### Bug
-WEBrick/1.4.2  - Disputed path traversal - 
-https://www.cvedetails.com/cve/CVE-2019-11879/
+https://stackoverflow.com/questions/9090577/what-is-the-http-header-x-xss-protection#:~:text=X-XSS-Protection%3A%201%3B%20mode%3Dblock%20allows%20attacker%20to%20leak%20data,the%20behavior%20of%20the%20page%20as%20a%20side-channel
 
-### Bug
-
-decimals, policy - te property sa w subject 919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e ale nie sa w known properties!
-
-### Bug
-
-Requesting policy property gets invalid json in response
+### Steps
 
 ```
-Request method:	GET
-Request URI:	http://metadata-server-mock.herokuapp.com/metadata/919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e/properties/policy
-Proxy:			<none>
-Request params:	<none>
-Query params:	<none>
-Form params:	<none>
-Path params:	subject=919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e
-property=policy
-Headers:		Accept=*/*
-Cookies:		<none>
-Multiparts:		<none>
-Body:			<none>
+curl 'http://metadata-server-mock.herokuapp.com/unknown' --header 'Accept: */*' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/17.0.2)' --compressed --insecure --verbose
 ```
+
+### Actual outcome
+
+Header "X-Xss-Protection: 1; mode=block" in response
+
+### Expected outcome
+
+No header X-Xss-Protection in response
+
+***
+
+## Bug 7 - [/metadata/{id}/properties/{pid}] Requesting policy and subject property gets invalid json in response
+
+### Description
+
+Requesting subject/policy properties gives invalid JSON response,
+even though Content-Type indicates that it should be JSON
+
+### Steps
+
+```
+curl 'http://metadata-server-mock.herokuapp.com/metadata/919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e/properties/subject' --header 'Accept: */*' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/17.0.2)' --compressed --insecure --verbose
+```
+
+or:
+
+```
+curl 'http://metadata-server-mock.herokuapp.com/metadata/919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e/properties/policy' --header 'Accept: */*' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/17.0.2)' --compressed --insecure --verbose
+```
+
+### Actual outcome
+
+For subject:
+
 ```
 HTTP/1.1 200 OK
 Connection: keep-alive
@@ -225,33 +251,34 @@ Via: 1.1 vegur
 "82008201818200581c69303ce3536df260efddbc949ccb94e6993302b10b778d8b4d98bfb5"
 ```
 
-### Bug
+### Expected
 
-Needs to be double-checked with BA 
+JSON body
 
-Known properties vs which one I can request
+***
 
-### Bug
+## Bug 8 - [/metadata/{id}/properties/{pid}] Requesting known property for subject in which it does not exist
 
-Unknown property error in response body is not a JSON 
+### Description
+
+Preconditions:
+
+1. Metadata for subject 919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e exists
+2. Metadata does not contain "unit" element
+
+When requesting "unit" property inconsistent response is sent:
+
+- plain text message
+- application/json content type
+- response code 200
+
+### Steps
 
 ```
 curl 'http://metadata-server-mock.herokuapp.com/metadata/919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e/properties/unit' --header 'Accept: */*' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/17.0.2)' --compressed --insecure --verbose
 ```
-```
-Request method:	GET
-Request URI:	http://metadata-server-mock.herokuapp.com/metadata/919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e/properties/unit
-Proxy:			<none>
-Request params:	<none>
-Query params:	<none>
-Form params:	<none>
-Path params:	subject=919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e
-property=unit
-Headers:		Accept=*/*
-Cookies:		<none>
-Multiparts:		<none>
-Body:			<none>
-```
+
+### Actual outcome
 
 ```
 HTTP/1.1 200 OK
@@ -266,38 +293,82 @@ Via: 1.1 vegur
 Requested property 'unit' not found
 ```
 
-### Bug
+### Expected outcome
 
-Possible to read property subject
+Response code 404
 
-```
-Request method:	GET
-Request URI:	http://metadata-server-mock.herokuapp.com/metadata/919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e/properties/subject
-Proxy:			<none>
-Request params:	<none>
-Query params:	<none>
-Form params:	<none>
-Path params:	subject=919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e
-property=subject
-Headers:		Accept=*/*
-Cookies:		<none>
-Multiparts:		<none>
-Body:			<none>
-```
+## Bug 9 - [/metadata/query] Should fail request with known subject and unknown property
+
+### Description
+
+Requesting unknown property gives built in (subject/decimals/policy) metadata information
+
+### Steps
 
 ```
-curl 'http://metadata-server-mock.herokuapp.com/metadata/919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e/properties/subject' --header 'Accept: */*' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/11.0.2)' --compressed --insecure --verbose
+curl 'http://metadata-server-mock.herokuapp.com/metadata/query' --header 'Accept: */*' --header 'Content-Type: application/json' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/17.0.2)' --data-binary '{"subjects":["919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e"],"properties":["unknown"]}' --compressed --insecure --verbose
 ```
+
+### Actual
 
 ```
 HTTP/1.1 200 OK
 Connection: keep-alive
 Content-Type: application/json
-Content-Length: 76
+Content-Length: 470
 X-Content-Type-Options: nosniff
 Server: WEBrick/1.4.2 (Ruby/2.6.6/2020-03-31)
-Date: Mon, 25 Apr 2022 20:42:03 GMT
+Date: Wed, 27 Apr 2022 19:28:12 GMT
 Via: 1.1 vegur
 
-"919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e"
+{
+    "subjects": [
+        {
+            "subject": "919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e",
+            "decimals": {
+...
 ```
+
+### Expected
+
+Response code 422
+
+## Bug 10 - [/metadata/query] Should fail request with unknown subject
+
+### Description
+
+Requesting unknown subject inconsistent response
+
+- plain text message
+- application/json content type
+- response code 200
+
+### Steps
+
+```
+curl 'http://metadata-server-mock.herokuapp.com/metadata/nonExistingSubject/properties/description' --header 'Accept: */*' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/17.0.2)' --compressed --insecure --verbose
+```
+
+### Actual
+
+```
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Type: application/json
+Content-Length: 48
+X-Content-Type-Options: nosniff
+Server: WEBrick/1.4.2 (Ruby/2.6.6/2020-03-31)
+Date: Wed, 27 Apr 2022 19:37:40 GMT
+Via: 1.1 vegur
+
+Requested subject 'nonExistingSubject' not found
+```
+
+### Expected
+
+Response code 422
+
+***
+
+To discuss :
+Which properties could be requested

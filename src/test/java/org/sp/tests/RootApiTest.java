@@ -81,7 +81,7 @@ public class RootApiTest {
         //TODO: nice to check XSS here as well
         ExtractableResponse<Response> extract =
                 given()
-                        .basePath("/%3Ca%20id%3Dx%20tabindex%3D1%20onfocusin%3Dalert(1)%3E%3C%2Fa%3E#x")
+                        .basePath("/unknownPath")
                         .when()
                         .get()
                         .then()

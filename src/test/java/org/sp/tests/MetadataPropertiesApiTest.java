@@ -2,6 +2,7 @@ package org.sp.tests;
 
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
+import org.assertj.core.api.Assertions;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,12 +18,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.apache.http.HttpStatus.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.sp.MetadataRestAssured.given;
 
 public class MetadataPropertiesApiTest extends MetadataServerTest {
 
     @Test
+    @DisplayName("Should fail on unknown property")
     public void knownSubjectUnknownProperty() {
         ExtractableResponse<Response> extract =
                 given()
@@ -40,6 +43,7 @@ public class MetadataPropertiesApiTest extends MetadataServerTest {
     }
 
     @Test
+    @DisplayName("Should fail on unknown subject")
     public void unknownSubjectKnownProperty() {
         ExtractableResponse<Response> extract =
                 given()
@@ -57,7 +61,10 @@ public class MetadataPropertiesApiTest extends MetadataServerTest {
     }
 
     @Test
+    @DisplayName("Should return requested property")
     public void knownSubjectKnownProperty() {
+        Response metadata = Steps.getMetadata(existingSubject);
+
         ExtractableResponse<Response> extract =
                 given()
                         .basePath(Services.METADATA_PROPERTIES)
@@ -71,29 +78,20 @@ public class MetadataPropertiesApiTest extends MetadataServerTest {
         assertAll(
                 () -> assertEquals(SC_OK, extract.statusCode()),
                 () -> assertNotNull(extract.jsonPath().get("$")),
-                () -> assertNotNull(extract.jsonPath().get("ticker"))
+                () -> JSONAssert.assertEquals(
+                        new JSONObject(extract.response().body().asPrettyString()),
+                        new JSONObject(metadata.body().asPrettyString()).getJSONObject("ticker"),
+                        true
+                )
+
         );
     }
 
     @Test
-    public void unknownSubjectUnknownProperty() {
-        ExtractableResponse<Response> extract =
-                given()
-                        .basePath(Services.METADATA_PROPERTIES)
-                        .pathParam("subject", nonExistingSubject)
-                        .pathParam("property", "ticker")
-                        .when()
-                        .get()
-                        .then()
-                        .extract();
-
-        assertAll(
-                () -> assertEquals(SC_BAD_REQUEST, extract.statusCode())
-        );
-    }
-
-    @Test
+    @DisplayName("Should process request for builtin property")
     public void builtInProperty() {
+        Response metadata = Steps.getMetadata(existingSubject);
+
         ExtractableResponse<Response> extract =
                 given()
                         .basePath(Services.METADATA_PROPERTIES)
@@ -107,11 +105,15 @@ public class MetadataPropertiesApiTest extends MetadataServerTest {
         assertAll(
                 () -> assertEquals(SC_OK, extract.statusCode()),
                 () -> assertNotNull(extract.jsonPath().get("$")),
-                () -> assertNotNull(extract.jsonPath().get("decimals"))
+                () -> JSONAssert.assertEquals(
+                        new JSONObject(extract.response().body().asPrettyString()),
+                        new JSONObject(metadata.body().asPrettyString()).getJSONObject("decimals"),
+                        true
+                )
         );
     }
 
-    public static Collection<Object[]> getAllowedProperties() {
+    private static Collection<Object[]> getAllowedProperties() {
         return MetadataProperties.knownProperties.stream().map(p -> new String[]{p}).collect(Collectors.toList());
     }
 
@@ -135,13 +137,13 @@ public class MetadataPropertiesApiTest extends MetadataServerTest {
         );
     }
 
-    public static Collection<Object[]> getFoundProperties() {
+    private static Collection<Object[]> getFoundProperties() {
         List<Object[]> scenarios = new ArrayList<>();
         List<String> allMetadataPaths = Steps.getAllMetadataPaths();
         allMetadataPaths.forEach(s -> {
             String subject = Steps.getMetadataSubjectFromPath(s);
             Response metadata = Steps.getMetadata(subject);
-            Set<String> keys = ((Map<String, Object>) metadata.jsonPath().get("$")).keySet();
+            Set<Object> keys = metadata.jsonPath().getMap("$").keySet();
             keys.forEach(key -> {
                 scenarios.add(new Object[]{subject, key});
             });
@@ -151,7 +153,7 @@ public class MetadataPropertiesApiTest extends MetadataServerTest {
 
     @ParameterizedTest
     @MethodSource("getFoundProperties")
-    @DisplayName("Should be able to request every property of a subject")
+    @DisplayName("Should be able to request every property of a metadata")
     public void readAllFoundProperties(String subject, String property) {
         Response metadata = Steps.getMetadata(subject);
         ExtractableResponse<Response> extract =

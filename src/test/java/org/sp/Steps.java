@@ -42,4 +42,19 @@ public class Steps {
                         .extract();
         return extract.response();
     }
+
+    public static Response getMetadata(String subject, String property) {
+        log.info("Get metadata property={} for subject='{}'", property, subject);
+        ExtractableResponse<Response> extract =
+                given()
+                        .basePath(Services.METADATA_PROPERTIES)
+                        .pathParam("subject", subject)
+                        .pathParam("property", property)
+                        .when()
+                        .get()
+                        .then()
+                        .statusCode(200)
+                        .extract();
+        return extract.response();
+    }
 }

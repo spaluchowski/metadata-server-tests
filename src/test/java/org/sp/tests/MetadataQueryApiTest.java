@@ -3,11 +3,14 @@ package org.sp.tests;
 import io.restassured.http.ContentType;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
+import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.sp.MetadataProperties;
 import org.sp.MetadataServerTest;
 import org.sp.Services;
+import org.sp.Steps;
 import org.sp.model.QueryBody;
 
 import java.util.ArrayList;
@@ -43,7 +46,7 @@ public class MetadataQueryApiTest extends MetadataServerTest {
                 () -> assertEquals(SC_OK, extract.statusCode()),
                 () -> assertEquals(ContentType.JSON.toString(), extract.contentType()),
                 () -> assertNotNull(extract.body().jsonPath().get("$")),
-                () -> assertThat((extract.jsonPath().getMap("$")).keySet())
+                () -> assertThat((extract.jsonPath().getMap("subjects[0]")).keySet())
                         .containsExactlyInAnyOrder("subject", "decimals", "policy", "name")
         );
     }
@@ -195,6 +198,7 @@ public class MetadataQueryApiTest extends MetadataServerTest {
     }
 
     @Test
+    @DisplayName("Should process request for two same subjects")
     public void twoSameSubjects() {
         ExtractableResponse<Response> extract =
                 given()
@@ -220,8 +224,41 @@ public class MetadataQueryApiTest extends MetadataServerTest {
         );
     }
 
+    @Test
+    @DisplayName("Should process request for two different subjects")
+    public void twoDifferentSubjects() {
+        String subject0 = existingSubjects.get(0);
+        String subject1 = existingSubjects.get(1);
+
+        ExtractableResponse<Response> extract =
+                given()
+                        .basePath(Services.METADATA_QUERY)
+                        .contentType(ContentType.JSON)
+                        .body(
+                                QueryBody.builder()
+                                        .subjects(of(subject0, subject1))
+                                        .properties(of("description"))
+                                        .build()
+                        )
+                        .when()
+                        .post()
+                        .then()
+                        .extract();
+
+        assertAll(
+                () -> assertEquals(SC_OK, extract.statusCode()),
+                () -> assertEquals(ContentType.JSON.toString(), extract.contentType()),
+                () -> assertThat(extract.response().jsonPath().getList("subjects"))
+                        .hasSize(2),
+                () -> assertThat(extract.response().jsonPath().getList("subjects.subject"))
+                        .containsExactlyElementsOf(existingSubjects),
+                () -> assertThat(extract.response().jsonPath().getList("subjects.description"))
+                        .hasSize(2)
+        );
+    }
 
     @Test
+    @DisplayName("Should fail on request with no body")
     public void noBody() {
         ExtractableResponse<Response> extract =
                 given()
@@ -233,36 +270,36 @@ public class MetadataQueryApiTest extends MetadataServerTest {
                         .extract();
 
         assertAll(
-                () -> assertEquals(SC_OK, extract.statusCode()),
-                () -> assertEquals(ContentType.JSON.toString(), extract.contentType())
+                () -> assertEquals(SC_BAD_REQUEST, extract.statusCode())
         );
     }
 
     @Test
-    public void emptyBody() {
+    @DisplayName("Should fail request with wrong json in body")
+    public void wrongBody() {
         ExtractableResponse<Response> extract =
                 given()
                         .basePath(Services.METADATA_QUERY)
                         .contentType(ContentType.JSON)
-                        .body("{}")
+                        .body("{notAJson}")
                         .when()
                         .post()
                         .then()
                         .extract();
 
         assertAll(
-                () -> assertEquals(SC_OK, extract.statusCode()),
-                () -> assertEquals(ContentType.JSON.toString(), extract.contentType())
+                () -> assertEquals(SC_BAD_REQUEST, extract.statusCode())
         );
     }
 
     @Test
+    @DisplayName("Should fail on wrong content-type")
     public void contentTypeWrong() {
         ExtractableResponse<Response> extract =
                 given()
                         .basePath(Services.METADATA_QUERY)
                         .contentType(ContentType.TEXT.toString())
-                        .body("{\"subjects\":[\"s\"]}")
+                        .body("{\"subjects\":[\"" + existingSubject + "\"]}")
                         .when()
                         .post()
                         .then()
@@ -275,6 +312,7 @@ public class MetadataQueryApiTest extends MetadataServerTest {
     }
 
     @Test
+    @DisplayName("Should process request of known properties")
     public void allKnownProperties() {
         ExtractableResponse<Response> extract =
                 given()
