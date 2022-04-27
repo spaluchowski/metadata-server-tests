@@ -33,7 +33,7 @@ public class Steps {
         log.info("Get metadata for subject='{}'", subject);
         ExtractableResponse<Response> extract =
                 given()
-                        .basePath(Services.METADATA_PROPERTY)
+                        .basePath(Services.METADATA_SUBJECT)
                         .pathParam("subject", subject)
                         .when()
                         .get()

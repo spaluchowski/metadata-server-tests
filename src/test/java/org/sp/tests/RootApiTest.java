@@ -18,7 +18,7 @@ import static org.sp.MetadataRestAssured.given;
 public class RootApiTest {
 
     @Test
-    @DisplayName("Should check if root element can be received")
+    @DisplayName("Should process root element")
     public void shouldReceiveRoot() {
         ExtractableResponse<Response> extract =
                 given()
@@ -35,17 +35,53 @@ public class RootApiTest {
                 () -> assertThat(extract.xmlPath(HTML).getList("html.body.ul.li.a"))
                         .as("Metadata list should contain subjects")
                         .isNotEmpty()
-                        .allMatch(e -> ((String) e).startsWith("metadata/"))
+                        .allMatch(e -> ((String) e).startsWith("metadata/")),
+                () -> assertThat(extract.htmlPath().getList("html.body.ul.li.a['@href']"))
+                        .as("Metadata list should contain subjects")
+                        .isNotEmpty()
+                        .allMatch(e -> ((String) e).startsWith("metadata/")),
+                () -> assertThat(extract.htmlPath().getList("html.body.ul.li.a['@href']"))
+                        .containsExactlyElementsOf(extract.htmlPath().getList("html.body.ul.li.a"))
         );
 
     }
 
     @Test
-    @DisplayName("Should check if not known endpoint response is valid")
-    public void shouldReceive404() {
+    @DisplayName("Should process root element")
+    public void shouldReceiveRootAlt() {
         ExtractableResponse<Response> extract =
                 given()
-                        .basePath("/unknownPath")
+                        .basePath("")
+                        .when()
+                        .get()
+                        .then()
+                        .extract();
+
+        assertAll(
+                () -> assertEquals(SC_OK, extract.statusCode()),
+                () -> assertEquals(ContentType.HTML.withCharset("utf-8").replaceAll("\\s", ""), extract.contentType()),
+                () -> assertEquals("Metadata Server Mock:", extract.xmlPath(HTML).getString("html.body.h3")),
+                () -> assertThat(extract.htmlPath().getList("html.body.ul.li.a"))
+                        .as("Metadata list should contain subjects")
+                        .isNotEmpty()
+                        .allMatch(e -> ((String) e).startsWith("metadata/")),
+                () -> assertThat(extract.htmlPath().getList("html.body.ul.li.a['@href']"))
+                        .as("Metadata list should contain subjects")
+                        .isNotEmpty()
+                        .allMatch(e -> ((String) e).startsWith("metadata/")),
+                () -> assertThat(extract.htmlPath().getList("html.body.ul.li.a['@href']"))
+                        .containsExactlyElementsOf(extract.htmlPath().getList("html.body.ul.li.a"))
+        );
+
+    }
+
+    @Test
+    @DisplayName("Should fail if unknown endpoint response is valid")
+    public void shouldReceive404() {
+        //TODO: nice to check XSS here as well
+        ExtractableResponse<Response> extract =
+                given()
+                        .basePath("/%3Ca%20id%3Dx%20tabindex%3D1%20onfocusin%3Dalert(1)%3E%3C%2Fa%3E#x")
                         .when()
                         .get()
                         .then()

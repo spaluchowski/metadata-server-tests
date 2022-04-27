@@ -3,13 +3,12 @@ package org.sp.tests;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.skyscreamer.jsonassert.JSONAssert;
-import org.sp.AllowedProperties;
+import org.sp.MetadataProperties;
 import org.sp.MetadataServerTest;
 import org.sp.Services;
 import org.sp.Steps;
@@ -17,14 +16,14 @@ import org.sp.Steps;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.apache.http.HttpStatus.SC_OK;
+import static org.apache.http.HttpStatus.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.sp.MetadataRestAssured.given;
 
 public class MetadataPropertiesApiTest extends MetadataServerTest {
 
     @Test
-    public void unknownProperty() {
+    public void knownSubjectUnknownProperty() {
         ExtractableResponse<Response> extract =
                 given()
                         .basePath(Services.METADATA_PROPERTIES)
@@ -36,29 +35,29 @@ public class MetadataPropertiesApiTest extends MetadataServerTest {
                         .extract();
 
         assertAll(
-                () -> assertEquals(SC_OK, extract.statusCode())
+                () -> assertEquals(SC_UNPROCESSABLE_ENTITY, extract.statusCode())
         );
     }
 
     @Test
-    public void knownPropertyUnknownSubject() {
+    public void unknownSubjectKnownProperty() {
         ExtractableResponse<Response> extract =
                 given()
                         .basePath(Services.METADATA_PROPERTIES)
                         .pathParam("subject", nonExistingSubject)
-                        .pathParam("property", "unknown")
+                        .pathParam("property", "description")
                         .when()
                         .get()
                         .then()
                         .extract();
 
         assertAll(
-                () -> assertEquals(SC_OK, extract.statusCode())
+                () -> assertEquals(SC_UNPROCESSABLE_ENTITY, extract.statusCode())
         );
     }
 
     @Test
-    public void knownProperty() {
+    public void knownSubjectKnownProperty() {
         ExtractableResponse<Response> extract =
                 given()
                         .basePath(Services.METADATA_PROPERTIES)
@@ -70,35 +69,56 @@ public class MetadataPropertiesApiTest extends MetadataServerTest {
                         .extract();
 
         assertAll(
-                () -> assertEquals(SC_OK, extract.statusCode())
+                () -> assertEquals(SC_OK, extract.statusCode()),
+                () -> assertNotNull(extract.jsonPath().get("$")),
+                () -> assertNotNull(extract.jsonPath().get("ticker"))
         );
     }
 
     @Test
-    public void forbiddenProperty() {
+    public void unknownSubjectUnknownProperty() {
         ExtractableResponse<Response> extract =
                 given()
                         .basePath(Services.METADATA_PROPERTIES)
-                        .pathParam("subject", existingSubject)
-                        .pathParam("property", "policy")
+                        .pathParam("subject", nonExistingSubject)
+                        .pathParam("property", "ticker")
                         .when()
                         .get()
                         .then()
                         .extract();
 
         assertAll(
-                () -> assertEquals(SC_OK, extract.statusCode())
+                () -> assertEquals(SC_BAD_REQUEST, extract.statusCode())
+        );
+    }
+
+    @Test
+    public void builtInProperty() {
+        ExtractableResponse<Response> extract =
+                given()
+                        .basePath(Services.METADATA_PROPERTIES)
+                        .pathParam("subject", existingSubject)
+                        .pathParam("property", "decimals")
+                        .when()
+                        .get()
+                        .then()
+                        .extract();
+
+        assertAll(
+                () -> assertEquals(SC_OK, extract.statusCode()),
+                () -> assertNotNull(extract.jsonPath().get("$")),
+                () -> assertNotNull(extract.jsonPath().get("decimals"))
         );
     }
 
     public static Collection<Object[]> getAllowedProperties() {
-        return AllowedProperties.properties.stream().map(p -> new String[]{p}).collect(Collectors.toList());
+        return MetadataProperties.knownProperties.stream().map(p -> new String[]{p}).collect(Collectors.toList());
     }
 
     @ParameterizedTest
     @MethodSource("getAllowedProperties")
-    @DisplayName("Should be able to request every allowed property")
-    public void allowedProperties(String property) {
+    @DisplayName("Should be able to request every known property")
+    public void knownProperties(String property) {
         ExtractableResponse<Response> extract =
                 given()
                         .basePath(Services.METADATA_PROPERTIES)
@@ -131,7 +151,8 @@ public class MetadataPropertiesApiTest extends MetadataServerTest {
 
     @ParameterizedTest
     @MethodSource("getFoundProperties")
-    public void readFoundProperties(String subject, String property) {
+    @DisplayName("Should be able to request every property of a subject")
+    public void readAllFoundProperties(String subject, String property) {
         Response metadata = Steps.getMetadata(subject);
         ExtractableResponse<Response> extract =
                 given()
