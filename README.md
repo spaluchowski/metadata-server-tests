@@ -2,6 +2,16 @@
 
 Code for API testing of the https://github.com/piotr-iohk/metadata-server-mock service
 
+## Notes
+
+To discuss :
+- Which properties could be requested ?
+- Are some properties built-in/mandatory? Or this is a bug ?
+- Logos are the same for both coins (base64 encoded)
+- Should every property have the same SequenceNumber (they are not) ?
+- Documentation is inconsistent with the API (i.e. signature)
+- Need to verify signatures - which algorithm is used? Ed25519? As of now verification is not passing
+
 # Defects
 
 Defects located
@@ -18,6 +28,7 @@ But shortened for readability
 ### Description
 
 Server information leakage
+
 Every response contains header:
 Server: WEBrick/1.4.2 (Ruby/2.6.6/2020-03-31)
 
@@ -403,13 +414,3 @@ Via: 1.1 vegur
 ### Expected
 
 Response code 405
-
-***
-
-To discuss :
-- Which properties could be requested ? 
-- Are some properties built-in/mandatory? Or this is a bug ?
-- Logos are the same for both coins (base64 encoded)
-- Should every property have the same SequenceNumber (they are not) ?
-- Documentation is inconsistent with the API (i.e. signature)
-- Need to verify signatures - which algorithm is used? Ed25519? As of now verification is not passing
