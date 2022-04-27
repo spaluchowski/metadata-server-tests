@@ -30,6 +30,9 @@
         <curl-logger.version>2.1.1</curl-logger.version>
         <lombok.version>1.18.24</lombok.version>
         <assertj-core.version>3.22.0</assertj-core.version>
+        <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
+        <bcpkix-jdk15on.version>1.70</bcpkix-jdk15on.version>
+        <jsonassert.version>1.5.0</jsonassert.version>
     </properties>
 
     <dependencies>
@@ -122,7 +125,19 @@
         <dependency>
             <groupId>org.skyscreamer</groupId>
             <artifactId>jsonassert</artifactId>
-            <version>1.5.0</version>
+            <version>${jsonassert.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>${bcprov-jdk15on.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>${bcpkix-jdk15on.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

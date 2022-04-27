@@ -368,7 +368,48 @@ Requested subject 'nonExistingSubject' not found
 
 Response code 422
 
+## Bug 11 - Unknown method response is invalid
+
+### Description
+
+Requesting unsupported method gives 404 response
+
+### Steps
+
+```
+curl 'http://metadata-server-mock.herokuapp.com/metadata/query' --request PUT --header 'Accept: */*' --header 'Content-Type: text/plain; charset=ISO-8859-1' --header 'Host: metadata-server-mock.herokuapp.com' --header 'Connection: Keep-Alive' --header 'User-Agent: Apache-HttpClient/4.5.13 (Java/17.0.2)' --data-binary '{"subjects":["919e8a1922aaa764b1d66407c6f62244e77081215f385b60a62091494861707079436f696e"]}' --compressed --insecure --verbose
+```
+
+### Actual
+
+```
+HTTP/1.1 404 Not Found
+Connection: keep-alive
+X-Cascade: pass
+Content-Type: text/html;charset=utf-8
+Content-Length: 19
+X-Xss-Protection: 1; mode=block
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+Server: WEBrick/1.4.2 (Ruby/2.6.6/2020-03-31)
+Date: Wed, 27 Apr 2022 20:21:16 GMT
+Via: 1.1 vegur
+
+<html>
+  <body>PUT /metadata/query</body>
+</html>
+```
+
+### Expected
+
+Response code 405
+
 ***
 
 To discuss :
-Which properties could be requested
+- Which properties could be requested ? 
+- Are some properties built-in/mandatory? Or this is a bug ?
+- Logos are the same for both coins (base64 encoded)
+- Should every property have the same SequenceNumber (they are not) ?
+- Documentation is inconsistent with the API (i.e. signature)
+- Need to verify signatures - which algorithm is used? Ed25519? As of now verification is not passing

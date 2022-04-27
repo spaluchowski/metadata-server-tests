@@ -293,6 +293,24 @@ public class MetadataQueryApiTest extends MetadataServerTest {
     }
 
     @Test
+    @DisplayName("Should fail on unsupported method")
+    public void unsupportedMethod() {
+        ExtractableResponse<Response> extract =
+                given()
+                        .basePath(Services.METADATA_QUERY)
+                        .contentType(ContentType.TEXT.toString())
+                        .body("{\"subjects\":[\"" + existingSubject + "\"]}")
+                        .when()
+                        .put()
+                        .then()
+                        .extract();
+
+        assertAll(
+                () -> assertEquals(SC_METHOD_NOT_ALLOWED, extract.statusCode())
+        );
+    }
+
+    @Test
     @DisplayName("Should fail on wrong content-type")
     public void contentTypeWrong() {
         ExtractableResponse<Response> extract =
